@@ -31,7 +31,7 @@ ARG DB_PASS=pass
 ARG ISPCONFIG_USER=admin
 ARG ISPCONFIG_PASS=admin
 ARG ROUNDCUBE_DB_PASS=pass
-#ARG HOSTNAME=server1.example.com
+ARG ISPCONFIG_HOSTNAME=server.focalserver.tk
 
 # --- 2 Update Your Debian Installation
 ADD ./etc/apt/sources.list /etc/apt/sources.list
@@ -57,10 +57,10 @@ RUN dpkg-reconfigure dash
 RUN apt-get -y install ntp ntpdate
 
 # --- 8 Install Postfix, Dovecot, MySQL, phpMyAdmin, rkhunter, binutils
-RUN echo 'mysql-server mysql-server/root_password password pass' | debconf-set-selections
-RUN echo 'mysql-server mysql-server/root_password_again password pass' | debconf-set-selections
-RUN echo 'mariadb-server mariadb-server/root_password password pass' | debconf-set-selections
-RUN echo 'mariadb-server mariadb-server/root_password_again password pass' | debconf-set-selections
+RUN echo mysql-server mysql-server/root_password password "$DB_PASS" | debconf-set-selections
+RUN echo mysql-server mysql-server/root_password_again password "$DB_PASS" | debconf-set-selections
+RUN echo mariadb-server mariadb-server/root_password password "$DB_PASS" | debconf-set-selections
+RUN echo mariadb-server mariadb-server/root_password_again password "$DB_PASS" | debconf-set-selections
 RUN apt-get -y install postfix postfix-mysql postfix-doc mariadb-client mariadb-server openssl getmail4 rkhunter binutils dovecot-imapd dovecot-pop3d dovecot-mysql dovecot-sieve dovecot-lmtpd sudo
 COPY ./etc/postfix/master.cf /etc/postfix/master.cf
 RUN service postfix restart
@@ -81,7 +81,7 @@ RUN apt-get -y install php5-fpm php5-mysql php5-curl php5-gd php5-intl php-pear 
 
 # --- 11 Install PhpMyAdmin
 RUN echo 'phpmyadmin phpmyadmin/dbconfig-install boolean true' | debconf-set-selections
-RUN echo 'phpmyadmin phpmyadmin/mysql/admin-pass password pass' | debconf-set-selections
+RUN echo phpmyadmin phpmyadmin/mysql/admin-pass password "$DB_PASS" | debconf-set-selections
 RUN apt-get -y install phpmyadmin
 
 # --- 12 XCache and PHP-FPM
@@ -149,8 +149,8 @@ RUN service fail2ban restart
 RUN apt-get -y install roundcube roundcube-core roundcube-mysql roundcube-plugins
 RUN echo 'roundcube-core  roundcube/dbconfig-install        boolean true' | debconf-set-selections
 RUN echo 'roundcube-core  roundcube/database-type select    mysql' | debconf-set-selections
-RUN echo 'roundcube-core  roundcube/mysql/admin-pass        $DB_PASS' | debconf-set-selections
-RUN echo 'roundcube-core  roundcube/mysql/app-pass          $ROUNDCUBE_DB_PASS' | debconf-set-selections
+RUN echo roundcube-core  roundcube/mysql/admin-pass        "$DB_PASS" | debconf-set-selections
+RUN echo roundcube-core  roundcube/mysql/app-pass          "$ROUNDCUBE_DB_PASS" | debconf-set-selections
 RUN echo 'roundcube-core  roundcube/hosts string            localhost' | debconf-set-selections
 RUN echo 'roundcube-core  roundcube/language select         en_UK' | debconf-set-selections
 RUN echo 'roundcube-core  roundcube/db/dbname string        roundcube' | debconf-set-selections
@@ -166,6 +166,10 @@ RUN ln -s /usr/share/roundcube /usr/share/squirrelmail
 #RUN service mysql restart
 
 # --- 20 Install ISPConfig 3
+RUN service apache2 stop
+RUN update-rc.d -f apache2 remove
+RUN service nginx restart
+
 RUN cd /tmp && cd . && wget http://www.ispconfig.org/downloads/ISPConfig-3-stable.tar.gz
 RUN cd /tmp && tar xfz ISPConfig-3-stable.tar.gz
 RUN service mysql restart
@@ -193,7 +197,7 @@ RUN mkdir -p /var/log/supervisor
 RUN mv /bin/systemctl /bin/systemctloriginal
 ADD ./bin/systemctl /bin/systemctl
 
-RUN sed -i "s/^hostname=server1.example.com$/hostname=$HOSTNAME/g" /tmp/ispconfig3_install/install/autoinstall.ini
+RUN sed -i 's/^hostname="($ISPCONFIG_HOSTNAME)"$/hostname=$HOSTNAME/g' /tmp/ispconfig3_install/install/autoinstall.ini
 # RUN mysqladmin -u root password pass
 RUN service mysql restart && php -q /tmp/ispconfig3_install/install/install.php --autoinstall=/tmp/ispconfig3_install/install/autoinstall.ini
 ADD ./ISPConfig_Clean-3.0.5 /tmp/ISPConfig_Clean-3.0.5
