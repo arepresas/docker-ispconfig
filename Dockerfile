@@ -168,6 +168,7 @@ RUN ln -s /usr/share/roundcube /usr/share/squirrelmail
 # --- 20 Install ISPConfig 3
 RUN service apache2 stop
 RUN update-rc.d -f apache2 remove
+RUN apt-get -y remove --purge apache2
 RUN service nginx restart
 
 RUN cd /tmp && cd . && wget http://www.ispconfig.org/downloads/ISPConfig-3-stable.tar.gz
