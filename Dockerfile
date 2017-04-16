@@ -38,7 +38,7 @@ ADD ./etc/apt/sources.list /etc/apt/sources.list
 RUN apt-get -y update && apt-get -y upgrade
 
 # --- 3 Preliminary
-RUN apt-get -y install rsyslog rsyslog-relp logrotate supervisor
+RUN apt-get -y install rsyslog rsyslog-relp logrotate supervisor apt-utils
 RUN touch /var/log/cron.log
 # Create the log file to be able to run tail
 RUN touch /var/log/auth.log
@@ -73,8 +73,8 @@ RUN service spamassassin stop
 RUN systemctl disable spamassassin
 
 # --- 10 Install Nginx, PHP (PHP-FPM), and Fcgiwrap
-RUN apt-get install nginx
-RUN service apache2 stop
+RUN apt-get -y install nginx
+#RUN service apache2 stop
 RUN systemctl disable apache2
 RUN service nginx start
 RUN apt-get -y install php5-fpm php5-mysql php5-curl php5-gd php5-intl php-pear php5-imagick php5-imap php5-mcrypt php5-memcache php5-memcached  php5-pspell php5-recode php5-sqlite php5-tidy php5-xmlrpc php5-xsl memcached php-apc fcgiwrap
