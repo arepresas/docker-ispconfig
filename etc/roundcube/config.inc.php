@@ -69,7 +69,7 @@ $config['product_name'] = 'Roundcube Webmail';
 // in the session record (and the client cookie if remember password is enabled).
 // please provide a string of exactly 24 chars.
 // YOUR KEY MUST BE DIFFERENT THAN THE SAMPLE VALUE FOR SECURITY REASONS
-$config['des_key'] = 'srwgcxEID6kNAsB67yKh8cmn';
+$config['des_key'] = 'AZO7448g1jDav5J7YY6WDIEY';
 
 // List of active plugins (in plugins/ directory)
 $config['plugins'] = array(
@@ -79,4 +79,3 @@ $config['plugins'] = array(
 
 // skin name: folder from skins/
 $config['skin'] = 'larry';
-
